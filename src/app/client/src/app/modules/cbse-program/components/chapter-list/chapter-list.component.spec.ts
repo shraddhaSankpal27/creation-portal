@@ -20,6 +20,7 @@ import { DebugElement, NO_ERRORS_SCHEMA } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DynamicModule } from 'ng-dynamic-component';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 
 describe('ChapterListComponent', () => {
@@ -27,7 +28,14 @@ describe('ChapterListComponent', () => {
   let fixture: ComponentFixture<ChapterListComponent>;
   let errorInitiate, de: DebugElement;
   let unitLevelResponse;
-  let ResourceServiceMock: ResourceService;
+  const ResourceServiceMock = {
+    messages: {
+      smsg: {m0064: 'Content is successfully removed'}
+    },
+    frmelmnts: {
+      lbl: {allChapters: 'All Chapters'}
+    }
+  };
   const actionServiceStub = {
     get() {
       if (errorInitiate) {
@@ -89,10 +97,10 @@ describe('ChapterListComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [SharedModule.forRoot(), CoreModule, RouterTestingModule, TelemetryModule.forRoot(), SuiModule,
-        SuiTabsModule, FormsModule, DynamicModule],
+        SuiTabsModule, FormsModule, DynamicModule, HttpClientTestingModule],
       declarations: [ChapterListComponent, RecursiveTreeComponent, ResourceTemplateComponent],
       schemas: [NO_ERRORS_SCHEMA],
-      providers: [CollectionHierarchyService, ResourceService,
+      providers: [CollectionHierarchyService, { provide: ResourceService, useValue: ResourceServiceMock },
         DatePipe,
              { provide: ActionService, useValue: actionServiceStub }, { provide: UserService, useValue: UserServiceStub },
       { provide: PublicDataService, useValue: PublicDataServiceStub }, ToasterService,
@@ -117,7 +125,7 @@ describe('ChapterListComponent', () => {
   });
 
     it('Component created', () => {
-      component.resourceService.frmelmnts.lbl = 'All Chapter(s)';
+    ResourceServiceMock.frmelmnts = {lbl: {allChapters: 'All Chapters'}};
       expect(component).toBeDefined();
     });
 
@@ -311,8 +319,6 @@ describe('ChapterListComponent', () => {
 
     it('should updateAccordianView after successful removal of content', () => {
       component.unitIdentifier = 'do_0000000000';
-      ResourceServiceMock = TestBed.get(ResourceService);
-      ResourceServiceMock.messages = {smsg: {m0064: 'Content is successfully removed'}};
       spyOn(component, 'updateAccordianView');
       component.removeResourceFromHierarchy();
       expect(component.showConfirmationModal).toBeFalsy();
