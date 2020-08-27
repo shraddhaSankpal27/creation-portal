@@ -182,7 +182,8 @@
                 "type": "string",
                 "enum": [
                     "Learner",
-                    "Instructor"
+                    "Instructor",
+                    "Student"
                 ]
             },
             "default": ["Learner"]

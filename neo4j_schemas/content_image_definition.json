@@ -163,7 +163,8 @@
                     "displayProperty": "Editable",
                     "range": [
                         "Learner",
-                        "Instructor"
+                        "Instructor",
+                        "Student"
                     ],
                     "defaultValue": "Learner",
                     "renderingHints": "{ 'inputType': 'textarea', 'order': 7 }",
