@@ -860,6 +860,9 @@
         "rejectComment": {
             "type": "string"
         },
+        "requestChanges": {
+            "type": "string"
+        },
         "totalQuestions": {
             "type": "number"
         },
