@@ -2394,6 +2394,18 @@
                     "indexed": true
                 },
                 {
+                    "propertyName": "requestChanges",
+                    "title": "Request Changes",
+                    "description": "Comment for Request Changes",
+                    "category": "General",
+                    "dataType": "Text",
+                    "required": false,
+                    "displayProperty": "Editable",
+                    "defaultValue": "",
+                    "renderingHints": "{'inputType': 'text', 'order': 18}",
+                    "indexed": true
+                },
+                {
                     "required": false,
                     "dataType": "Number",
                     "propertyName": "totalQuestions",
