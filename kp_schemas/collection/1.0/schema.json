@@ -178,12 +178,11 @@
       "items": {
         "type": "string",
         "enum": [
-          "Student",
-          "Teacher",
-          "Administrator"
+          "Learner",
+          "Instructor"
         ]
       },
-      "default": ["Student"]
+      "default": ["Learner"]
     },
     "posterImage": {
       "type": "string",

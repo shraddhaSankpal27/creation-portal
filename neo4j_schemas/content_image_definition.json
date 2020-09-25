@@ -162,11 +162,10 @@
                     "category": "General",
                     "displayProperty": "Editable",
                     "range": [
-                        "Student",
-                        "Teacher",
-                        "Administrator" 
+                        "Learner",
+                        "Instructor"              
                     ],
-                    "defaultValue": "Student",
+                    "defaultValue": "Learner",
                     "renderingHints": "{ 'inputType': 'textarea', 'order': 7 }",
                     "indexed": true,
                     "draft": false
