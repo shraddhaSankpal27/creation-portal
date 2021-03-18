@@ -943,7 +943,14 @@ export class ProgramsService extends DataService implements CanActivate {
   }
 
   getCategoryDefinition(category, rootOrgId) {
-    const cacheInd = category.name + ':' + rootOrgId;
+    let categoryName = '', categoryType = 'Content'
+    if(typeof category === "object") {
+      categoryName = category.name
+      categoryType = category.type
+    }
+    else categoryName = category;
+
+    const cacheInd = categoryName + ':' + rootOrgId;
     if (this.cacheService.get(cacheInd)) {
       return  of(this.cacheService.get(cacheInd));
     } else {
@@ -952,8 +959,8 @@ export class ProgramsService extends DataService implements CanActivate {
         data: {
           request: {
             "objectCategoryDefinition": {
-                "objectType": category.targetObjectType,
-                "name": category.name,
+                "objectType": categoryType,
+                "name": categoryName,
                 "channel": rootOrgId
             },
           }

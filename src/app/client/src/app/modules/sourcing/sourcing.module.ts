@@ -34,7 +34,7 @@ import { MvcPlayerComponent } from './components/mvc-player/mvc-player.component
 import { SkeletonLoaderComponent } from './components/skeleton-loader/skeleton-loader.component';
 import { NgInviewModule } from 'angular-inport';
 import { QuestionSetEditorComponent } from './components/question-set-editor/question-set-editor.component';
-import { QuestionEditorLibraryModule } from '@project-sunbird/sunbird-question-editor';
+// import { QuestionEditorLibraryModule } from '@project-sunbird/sunbird-question-editor';
 import {CarouselModule} from 'ngx-bootstrap/carousel';
 @NgModule({
   declarations: [QuestionListComponent, QuestionCreationComponent,
@@ -65,7 +65,7 @@ import {CarouselModule} from 'ngx-bootstrap/carousel';
       DashboardComponent, RecursiveTreeComponent, ContentUploaderComponent, ResourceTemplateComponent,
       ContentEditorComponent]),
     NgInviewModule,
-    QuestionEditorLibraryModule,
+    // QuestionEditorLibraryModule,
     CarouselModule.forRoot()
   ],
   providers: [CollectionHierarchyService],
