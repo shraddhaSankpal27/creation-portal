@@ -66,20 +66,22 @@ export class QuestionSetEditorComponent implements OnInit {
     };
     this.userProfile = this.userService.userProfile;
     this.getCollectionDetails().subscribe(data => {
-      this.collectionDetails = data.result.content;
+      this.collectionDetails = data.result.questionset;
       this.showQuestionEditor = this.collectionDetails.mimeType === 'application/vnd.sunbird.questionset' ? true : false;
-      this.getFrameWorkDetails();
+      //this.getFrameWorkDetails();
+      this.setEditorConfig();
+      this.showLoader = false;
     });
   }
 
   private getCollectionDetails() {
     const req = {
-      url: `${this.configService.urlConFig.URLS.CONTENT.GET}/${this.editorParams.questionSetId}?mode=edit`
+      url: `${this.configService.urlConFig.URLS.QUESTIONSET.GET}/${this.editorParams.questionSetId}?mode=edit`
     };
     return this.contentService.get(req).pipe(map((response: any) => {return response}));
   }
   
-  getFrameWorkDetails() {
+  /*getFrameWorkDetails() {
     if (this.programContext.rootorg_id) {
       this.helperService.fetchChannelData(this.programContext.rootorg_id);
     }
@@ -113,9 +115,9 @@ export class QuestionSetEditorComponent implements OnInit {
     }, err => {
       this.toasterService.error(this.resourceService.messages.emsg.m0015);
     });
-  }
+  }*/
 
-  getPrimaryCategoryData(childrenData) {
+  /*getPrimaryCategoryData(childrenData) {
     _.forEach(childrenData, (value, key) => {
       if (_.isEmpty(value)) {
         switch (key) {
@@ -136,20 +138,18 @@ export class QuestionSetEditorComponent implements OnInit {
       }
     });
     return childrenData;
-  }
+  }*/
 
   setEditorConfig() {
     // tslint:disable-next-line:max-line-length
-    const additionalCategories = _.merge(this.frameworkService['_channelData'].contentAdditionalCategories, this.frameworkService['_channelData'].collectionAdditionalCategories);
     this.editorConfig = {
       context: {
         identifier: this.editorParams.questionSetId,
-        channel: this.userService.channel,
+        channel: this.programContext.rootorg_id,
         authToken: '',
         sid: this.userService.sessionId,
         did: this.deviceId,
         uid: this.userService.userid,
-        additionalCategories: additionalCategories,
         pdata: {
           id: this.userService.appId,
           ver: this.portalVersion,
@@ -169,8 +169,10 @@ export class QuestionSetEditorComponent implements OnInit {
           id: this.userService.userid,
           orgIds: this.userProfile.organisationIds,
           organisations: this.userService.orgIdNameMap,
-          name : !_.isEmpty(this.userProfile.lastName) ? this.userProfile.firstName + ' ' + this.userProfile.lastName :
+          fullName : !_.isEmpty(this.userProfile.lastName) ? this.userProfile.firstName + ' ' + this.userProfile.lastName :
           this.userProfile.firstName,
+          firstName: this.userProfile.firstName,
+          lastName : !_.isEmpty(this.userProfile.lastName) ? this.userProfile.lastName : '',
           isRootOrgAdmin: this.userService.userProfile.rootOrgAdmin
         },
         channelData: this.frameworkService['_channelData'],
@@ -183,6 +185,8 @@ export class QuestionSetEditorComponent implements OnInit {
         }
       },
       config: {
+        primaryCategory: this.collectionDetails.primaryCategory,
+        objectType: "QuestionSet",
         mode: this.getEditorMode(),
         setDefaultCopyRight: false,
         showOriginPreviewUrl: false, 
@@ -193,7 +197,7 @@ export class QuestionSetEditorComponent implements OnInit {
     if (this.showQuestionEditor) {
       this.editorConfig.context.framework = this.collectionDetails.framework || this.frameworkService['_channelData'].defaultFramework;
     }
-    this.editorConfig.config = _.assign(this.editorConfig.config, this.hierarchyConfig);
+    //this.editorConfig.config = _.assign(this.editorConfig.config, this.hierarchyConfig);
     this.getCorrectionComments();
     this.getDikshaPreviewUrl();
     this.getStatustoShow();
@@ -230,7 +234,7 @@ export class QuestionSetEditorComponent implements OnInit {
     if (sourcingReviewStatus === 'Approved') {
       this.editorConfig.config.showOriginPreviewUrl = true;
       if (!_.isEmpty(this.sessionContext.contentOrigins) && !_.isEmpty(this.sessionContext.contentOrigins[this.editorParams.questionSetId])) {
-        this.editorConfig.context.originPreviewUrl =  this.helperService.getContentOriginUrl(this.sessionContext.contentOrigins[this.editorParams.questionSetId].identifier);
+        this.editorConfig.context.originPreviewUrl =  this.helperService.getQuestionSetOriginUrl(this.sessionContext.contentOrigins[this.editorParams.questionSetId].identifier);
       }
     }
   }
@@ -290,6 +294,14 @@ export class QuestionSetEditorComponent implements OnInit {
     && this.programsService.isProjectLive(this.programContext));
   }
 
+  getEditableFields() {
+    const resourceStatus = this.collectionDetails.status.toLowerCase();
+    this.editorConfig.config.editableFields.review = _.map(_.filter(this.programsService.overrideMetaData, {editable: true}), 'code');
+  }
+
+  hasRole(role) {
+    return this.sessionContext.currentRoles.includes(role);
+  }
   canReviewContent() {
     const resourceStatus = this.collectionDetails.status.toLowerCase();
 

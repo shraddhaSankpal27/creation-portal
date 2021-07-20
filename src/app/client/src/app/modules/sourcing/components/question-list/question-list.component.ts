@@ -251,7 +251,7 @@ export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     const targetCollectionMeta = {
       primaryCategory: (this.sessionContext.targetCollectionPrimaryCategory ) || 'Question paper',
-      channelId: this.userService.rootOrgId,
+      channelId: _.get(this.programContext, 'rootorg_id'),
       objectType: 'Collection'
     };
 
@@ -681,7 +681,7 @@ export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
   handleQuestionTabChange(questionId, actionStatus?: string) {
 
     if (_.includes(this.sessionContext.questionList, questionId) && !actionStatus) { return; }
-    if (!this.checkCurrentQuestionStatus()) { return ; }
+    if (!this.checkCurrentQuestionStatus() && !this.questionCreationChild.validateCurrentQuestion()) { return ; }
     this.sessionContext.questionList = [];
     this.sessionContext.questionList.push(questionId);
     this.selectedQuestionId = questionId;
@@ -746,8 +746,7 @@ export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public createNewQuestion(): void {
-
-    if (!this.checkCurrentQuestionStatus()) { return ; }
+    if (!this.checkCurrentQuestionStatus() || !this.questionCreationChild.validateCurrentQuestion()) { return ; }
     this.createDefaultAssessmentItem().pipe(
       map((data: any) => {
         const questionId = data.result.node_id;
@@ -1278,8 +1277,12 @@ export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   handleBack() {
-    this.generateTelemetryEndEvent('back');
-    this.programStageService.removeLastStage();
+    if(!this.questionCreationChild.validateCurrentQuestion() || !this.checkCurrentQuestionStatus()) {
+      return;
+    } else {
+      this.generateTelemetryEndEvent('back');
+      this.programStageService.removeLastStage();
+    }
   }
 
 
