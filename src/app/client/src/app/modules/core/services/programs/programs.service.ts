@@ -7,7 +7,7 @@ import { PublicDataService } from './../public-data/public-data.service';
 import { ActionService } from './../action/action.service';
 import { ConfigService, ServerResponse, ToasterService, ResourceService,
   HttpOptions, BrowserCacheTtlService, IUserProfile } from '@sunbird/shared';
-import { Injectable } from '@angular/core';
+import { Injectable, EventEmitter } from '@angular/core';
 import { UserService } from '../user/user.service';
 import { combineLatest, of, iif, Observable, BehaviorSubject, throwError, merge, forkJoin, Subject} from 'rxjs';
 import * as _ from 'lodash-es';
@@ -53,7 +53,8 @@ export class ProgramsService extends DataService implements CanActivate {
   public readonly programsNotificationData = this._programsNotificationData.asObservable()
     .pipe(skipWhile(data => data === undefined || data === null));
   private _projectFeedDays: string;
-
+  // to hablde header on new collection editor
+  public headerEventOnNewEditor: EventEmitter<boolean> = new EventEmitter(true);
   private userProfile: IUserProfile;
   constructor(config: ConfigService, http: HttpClient, private publicDataService: PublicDataService,
     private orgDetailsService: OrgDetailsService, private userService: UserService,
@@ -77,7 +78,7 @@ export class ProgramsService extends DataService implements CanActivate {
     //this.getAllContentCategories().subscribe();
     this.getOverridableMetaDataConfig().subscribe();
     this.mapSlugstoOrgId();
-
+    this.actionService.baseUrl = this.config.urlConFig.URLS.ACTION_PREFIX;
     this.userService.userData$.subscribe((user: any) => {
       if (user && !user.err) {
         this.userProfile = user.userProfile;
@@ -902,7 +903,7 @@ export class ProgramsService extends DataService implements CanActivate {
 
         return [topicTerms, tempLearningOutcomeOptions];
     }
-  
+
   filterBlueprintMetadata(selectedTopics) {
     let tempLearningOutcomeOptions = [];
     if(selectedTopics) {
@@ -979,17 +980,18 @@ export class ProgramsService extends DataService implements CanActivate {
     }
   }
 
-  getCollectionCategoryDefinition(categoryName, rootOrgId) {
+  getCollectionCategoryDefinition(categoryName, rootOrgId, targetObjectType = null) {
     const cacheInd = categoryName + ':' + rootOrgId;
     if (this.cacheService.get(cacheInd)) {
       return  of(this.cacheService.get(cacheInd));
     } else {
+      let objectType = targetObjectType || "Collection";
       const req = {
         url: 'object/category/definition/v1/read?fields=objectMetadata,forms,name',
         data: {
           request: {
             "objectCategoryDefinition": {
-                "objectType": "Collection",
+                "objectType": objectType,
                 "name": categoryName,
                 "channel": rootOrgId
             },
@@ -1200,6 +1202,16 @@ export class ProgramsService extends DataService implements CanActivate {
     }
   }
 
+  getSingleSourcingOriginEnvironment() {
+    switch(window.location.hostname) {
+      case 'dock.sunbirded.org': return 'https://dock.sunbirded.org'; break;
+      case 'dockstaging.sunbirded.org': return 'https://dockstaging.sunbirded.org'; break;
+      case 'vdn.diksha.gov.in': return 'https://vdn.diksha.gov.in'; break;
+      case 'dock.preprod.ntp.net.in': return 'https://dock.preprod.ntp.net.in'; break;
+      default: return  'https://dock.sunbirded.org'; break;
+    }
+  }
+
   setMvcStageData(data) {
     this.mvcStageData = data;
   }
@@ -1294,6 +1306,9 @@ export class ProgramsService extends DataService implements CanActivate {
     } else  {
       let collectionCat = '';
       if (_.isArray(program.target_collection_category)) {
+        if(!_.first(program.target_collection_category)) {
+          return 'Target Collections'
+        }
         collectionCat = program.target_collection_category[0];
       } else {
         collectionCat = program.target_collection_category;
@@ -1386,4 +1401,50 @@ export class ProgramsService extends DataService implements CanActivate {
 
     return formFieldProperties;
   }
-}
+
+  addQuestionSet(reqData) {
+    const option = {
+      url: 'questionset/v1/create',
+      header: {
+        'X-Channel-Id': _.get(this.userService, 'userProfile.rootOrgId')
+      },
+      data: {
+        request: {
+          questionset: reqData
+        }
+      }
+    };
+
+    return this.actionService.post(option).pipe(
+      mergeMap((data: ServerResponse) => {
+        if (data.params.status.toLowerCase() !== 'successful') {
+          return throwError(data);
+        }
+        return of(data);
+      }));
+  }
+
+  getContentAdditionModeConfig() {
+    const requestParam = {
+      url: 'program/v1/configuration/search',
+      header: {
+        'X-Channel-Id': _.get(this.userService, 'userProfile.rootOrgId')
+      },
+      data: {
+        request: {
+          key: 'programTargetObjectMap',
+          status: 'active'
+        }
+      }
+    };
+    return this.post(requestParam).pipe(tap(data => {
+      this.setSessionCache({name: 'contentAdditionModeConfig',  value: data });
+    }));
+  }
+  
+  emitHeaderEvent(status) {
+    this.headerEventOnNewEditor.emit(status);
+  }
+  getHeaderEmitter() {
+    return this.headerEventOnNewEditor;
+  }

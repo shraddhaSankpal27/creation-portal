@@ -34,12 +34,13 @@ export class MetaFormComponent implements OnInit, OnChanges, OnDestroy {
                 framworkServiceTemp = frameworkService;
                }
 
-  ngOnChanges() {
+  ngOnChanges() {    
     this.fetchFrameWorkDetails();
     this.setAppIconData();
-  }
+  }  
 
   ngOnInit() {
+    
   }
 
   setAppIconData() {
@@ -82,12 +83,7 @@ export class MetaFormComponent implements OnInit, OnChanges, OnDestroy {
           takeUntil(this.onComponentDestroy$),
           filter(data => _.get(data, `frameworkdata.${_.first(this.frameworkService.targetFrameworkIds)}`))
         ).subscribe((frameworkDetails: any) => {
-          if (frameworkDetails && !frameworkDetails.err) {
-            // const frameworkData = frameworkDetails.frameworkdata[this.frameworkService.targetFrameworkIds].categories;
-            // this.frameworkDetails.frameworkData = frameworkData;
-            // this.frameworkDetails.topicList = _.get(_.find(frameworkData, {
-            //   code: 'topic'
-            // }), 'terms');
+          if (frameworkDetails && !frameworkDetails.err) {            
             this.frameworkDetails.targetFrameworks = _.filter(frameworkDetails.frameworkdata, (value, key) => {
               return _.includes(this.frameworkService.targetFrameworkIds, key);
             });
@@ -99,6 +95,7 @@ export class MetaFormComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   attachDefaultValues() {
+    console.log('Fetching config');
     const metaDataFields = _.get(this.nodeMetadata, 'data.metadata');
     // if (_.isEmpty(metaDataFields)) { return; }
     const isRoot = _.get(metaDataFields, 'data.root');
@@ -134,13 +131,7 @@ export class MetaFormComponent implements OnInit, OnChanges, OnDestroy {
             moment.utc(moment.duration(value, 'seconds').asMilliseconds()).format(this.helperService.getTimerFormat(field)) : '';
           }
         }
-
-        // const frameworkCategory = _.find(categoryMasterList, category => {
-        //   return (category.code === field.sourceCategory || category.code === field.code) && !_.includes(field.code, 'target');
-        // // });
-        // if (!_.isEmpty(frameworkCategory)) {
-        //   field.terms = frameworkCategory.terms;
-        // }
+     
 
         if (field.code === 'framework') {
           field.range = this.frameworkService.frameworkValues;
@@ -161,6 +152,11 @@ export class MetaFormComponent implements OnInit, OnChanges, OnDestroy {
           field.default = !_.isEmpty(defaultLicense) ? defaultLicense : this.editorService.editorConfig.context.defaultLicense;
           const licenses = this.helperService.getAvailableLicenses();
           field.range = licenses ? _.map(licenses, 'name') : [];
+        }
+
+        if (field.code === 'author') {
+          if(this.editorService.editorConfig.config.setDefaultAuthor)
+          field.default = _.get(this.editorService.editorConfig, 'context.user.name', '');
         }
 
         if (field.code === 'additionalCategories') {
@@ -230,8 +226,7 @@ export class MetaFormComponent implements OnInit, OnChanges, OnDestroy {
       });
     });
 
-    this.formFieldProperties = _.cloneDeep(formConfig);
-    console.log(this.formFieldProperties);
+    this.formFieldProperties = _.cloneDeep(formConfig);    
   }
  isReviewMode() {
   return  _.includes(['review', 'read', 'sourcingreview' ], this.editorService.editorMode);
@@ -242,8 +237,7 @@ export class MetaFormComponent implements OnInit, OnChanges, OnDestroy {
     this.toolbarEmitter.emit({ button: 'onFormStatusChange', event });
   }
 
-  valueChanges(event: any) {
-    console.log(event);
+  valueChanges(event: any) {    
     if (!_.isEmpty(this.appIcon) && this.showAppIcon) {
       event.appIcon = this.appIcon;
     }
